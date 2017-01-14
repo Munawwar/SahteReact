@@ -1,0 +1,20 @@
+{
+  "name": "ninja",
+  "version": "0.1.0",
+  "description": "Library to use nunjucks and dom-diff to manage front-end UI.",
+  "main": "ninja.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ninja"
+  ],
+  "author": "Munawwar",
+  "license": "MIT",
+  "dependencies": {
+    "nunjucks": "^3.0.0"
+  }
+}
