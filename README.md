@@ -15,7 +15,7 @@ mytemplate.html (precompile it to mytemplate.js using nunjucks  `precompile` too
 
 index.html:
 ```html
-<!-DOCTYPE html>
+<!DOCTYPE html>
 <html>
     <head>
         <script src="jquery.js"></script>
