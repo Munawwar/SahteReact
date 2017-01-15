@@ -56,6 +56,7 @@
         Object.defineProperty(this, 'data', {
             configurable: false,
             set: function (data) {
+                data.$view = this;
                 this._data = data;
                 this.render();
             },
@@ -152,8 +153,6 @@
             // Step 3: Render/Update UI
             var view = Ninja.dom(this.getHTML()),
                 el = view.firstElementChild;
-            el.njView = this;
-
 
             // Update existing DOM.
             if (source) {
@@ -169,6 +168,8 @@
             } else {
                 this.el = el;
             }
+
+            this.el.ninjaView = this;
 
             // Step 4. Resolve element ref and refs.
             // Note:
@@ -224,7 +225,16 @@
             }
 
             if (node && node.parentNode) {
-                node.parentNode.replaceChild(this.el, node);
+                var parent = node.parentNode,
+                    childIndex = Array.from(parent.childNodes).indexOf(source);
+
+                //Update UI (using DOM diff & patch).
+                skateDomDiff.merge({
+                    source: node,
+                    destination: this.el
+                });
+                this.el = parent.childNodes[childIndex];
+                this.el.ninjaView = this;
             }
         }
     });

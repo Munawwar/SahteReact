@@ -27,12 +27,12 @@ index.html:
         <script src="mytemplate.js"></script>
     </head>
     <body>
-        <div id="node-to-replace"></div>
+        <div id="node-to-change"></div>
         <script>
             var view = new Ninja.View({
                 template: 'mytemplate',
                 data: { text: 'Test' },
-                target: '#node-to-replace',
+                target: '#node-to-change',
 
                 onClick: function () {
                     console.log('Clicked!');
@@ -65,5 +65,5 @@ Now you can use `this.spanEl` (inside a view method) or 'view.spanEl` (from outs
 
 ### Debug access
 
-One can do `rootElement.njView` to get access to the view object from the developer tools. It is only for
+One can do `rootElement.ninjaView` to get access to the view object from the developer tools. It is only for
 debugging purposes. Never use it in code.
