@@ -54,13 +54,13 @@ index.html:
 
 nunjucks example:
 ```
-nunjucks/bin/precompile --name myview myview.html > myview.js
+nunjucks/bin/precompile --name mytemplate mytemplate.html > mytemplate.js
 ```
 
 swig example:
 ```
-swig/bin/swig.js compile myview.html --wrap-start="swig._precompiled = swig._precompiled || {};
-swig._precompiled['myview'] = " > myview.js
+swig/bin/swig.js compile mytemplate.html --wrap-start="swig._precompiled = swig._precompiled || {};
+swig._precompiled['mytemplate'] = " > mytemplate.js
 ```
 
 ### How to update the view?
