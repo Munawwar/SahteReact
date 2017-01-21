@@ -2,11 +2,17 @@
 
 A client-side library to keep UI in sync.
 
-Uses nunjucks and skatejs/dom-diff.
+Uses nunjucks (or swig) template library and skatejs/dom-diff.
+
+### Why?
+
+I am working on a project that is using swig & jquery and is difficult to refactor to React or Vue.
+So.. improvising... this library can reduce the amount of jquery needed to update the view, by
+reusing the server-side swig templates on the browser wherever possible.
 
 ### Example
 
-mytemplate.html (precompile it to mytemplate.js using nunjucks  `precompile` tool)
+mytemplate.html (precompile it to mytemplate.js using nunjucks  `precompile` tool or swig `compile` CLI)
 ```html
 <div on-click="onClick">
     {{ text }}
@@ -21,18 +27,18 @@ index.html:
         <script src="jquery.js"></script>
 
         <script src="skatejs-dom-diff.js"></script>
-        <script src="nunjucks-slim.min.js"></script>
+        <script src="template-library/nunjucks-slim.min.js"></script>
         <script src="ninja.js"></script>
 
         <script src="mytemplate.js"></script>
     </head>
     <body>
-        <div id="node-to-change"></div>
+        <div id="node-to-sync"></div>
         <script>
             var view = new Ninja.View({
                 template: 'mytemplate',
                 data: { text: 'Test' },
-                target: '#node-to-change',
+                target: '#node-to-sync',
 
                 onClick: function () {
                     console.log('Clicked!');
@@ -42,6 +48,19 @@ index.html:
         </script>
     </body>
 </html>
+```
+
+### Precompiling command
+
+nunjucks example:
+```
+nunjucks/bin/precompile --name myview myview.html > myview.js
+```
+
+swig example:
+```
+swig/bin/swig.js compile myview.html --wrap-start="swig._precompiled = swig._precompiled || {};
+swig._precompiled['myview'] = " > myview.js
 ```
 
 ### How to update the view?

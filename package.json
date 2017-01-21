@@ -14,7 +14,9 @@
   ],
   "author": "Munawwar",
   "license": "MIT",
-  "dependencies": {
-    "nunjucks": "^3.0.0"
+  "dependencies": {},
+  "devDependencies": {
+    "nunjucks": "^3.0.0",
+    "swig": "^1.4.2"
   }
 }

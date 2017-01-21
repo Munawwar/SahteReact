@@ -113,7 +113,11 @@
         },
 
         getHTML: function () {
-            return nunjucks.render(this.template, this.data);
+            if (window.nunjucks) {
+                return window.nunjucks.render(this.template, this.data);
+            } else if (window.swig) {
+                return window.swig.run(window.swig._precompiled[this.template], this.data, this.template);
+            }
         },
 
         /**
