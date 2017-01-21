@@ -226,7 +226,7 @@
 
             if (node && node.parentNode) {
                 var parent = node.parentNode,
-                    childIndex = Array.from(parent.childNodes).indexOf(source);
+                    childIndex = Array.from(parent.childNodes).indexOf(node);
 
                 //Update UI (using DOM diff & patch).
                 skateDomDiff.merge({
