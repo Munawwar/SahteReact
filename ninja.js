@@ -219,8 +219,12 @@
                 return this.render(node);
             }
 
-            if (!node && typeof this.target === 'string' && this.target) {
-                node = document.querySelector(this.target);
+            if (!node && this.target) {
+                if (typeof this.target === 'string') {
+                    node = document.querySelector(this.target);
+                } else if (this.target instanceof HTMLElement) {
+                    node = this.target;
+                }
             }
 
             //Return if already mounted.
