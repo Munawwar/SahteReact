@@ -4,46 +4,136 @@
     window.Ninja = factory();
 }(function () {
     var Ninja = {
-        /**
-         * String formatting
-         * @param {String} str String with placeholders
-         * @param {Object|...} arg If object then you can use {propertyName} as placeholder.
-         * Else you can supply n number of args and use {argument index} as placholder
-         * @method format
-         * @example
-         *
-         *     Ninja.format('<div class="{0}">', 'box');
-         *     Ninja.format('<div class="{cls}">', {cls: 'box'});
-         *     //output of both: <div class="box">
-         *
-         */
-        format: function (str, arg) {
-            if (typeof arg !== 'object') {
-                arg = Array.prototype.slice.call(arguments, 1);
+        // Deep merge helper
+        merge: (function () {
+            if (window.jQuery) {
+                return function merge () {
+                    var args = [true].concat(Array.from(arguments));
+                    return window.jQuery.extend.apply(window.jQuery, args);
+                };
+            } else { // for mobile
+                return function merge (out) {
+                    out = out || {};
+                    for (var i = 1; i < arguments.length; i += 1) {
+                        var obj = arguments[i];
+                        if (!obj) {
+                            continue;
+                        }
+                        for (var key in obj) {
+                            if (obj.hasOwnProperty(key)) {
+                                if (typeof obj[key] === 'object')
+                                    out[key] = Ninja.merge(out[key], obj[key]);
+                                else
+                                    out[key] = obj[key];
+                            }
+                        }
+                    }
+                    return out;
+                };
             }
-            return str.replace(/(^|[^\\])\{(\w+)\}/g, function (m, p, index) {
-                var x = arg[index];
-                return (p || '') + (x !== undefined ? x : '');
+        }()),
+
+        /**
+         * Generates an unique alpha-numeric identifier.<br/>
+         * To get the same permutation as RFC-4122 use len=24.
+         * @param [len=10] Length of the UUID.
+         * @param [hypenate=false] When set to true, hyphens are added to the UUID.
+         * @return {String} The UUID
+         * @method uuid
+         */
+        uuid: function (len, hypenate) {
+            var count = 1, id = ('x').repeat(len || 10).replace(/x/g, function () {
+                return ((count++ % 5) ? '' : '-') + (Math.random() * 100 % 36 | 0).toString(36);
             });
+            return hypenate ? id : id.replace(/-/g, '');
+        },
+
+        /**
+         * Send in any object (including function, DOM Nodes or whatever) and get a unique id.
+         * If you send the object again, the same id will be returned as the last time.
+         * This does not leak memory.
+         * @method getUID
+         */
+        getUID: function getUID(obj) {
+            if (!obj._uid_) {
+                Object.defineProperty(obj, '_uid_', {
+                    value: Ninja.uuid(),
+                    enumerable: false
+                });
+            }
+            return obj._uid_;
         },
 
         /*Dom helpers*/
         /**
-         * Converts html string to a document fragment.<br/>
-         * The html string and arguments are first sent to Ninja.format to get the
-         * final html string.
+         * Converts html string to a document fragment.
          * @param {String} html
-         * @param {...} Any number of arguments that will be passed on to Ninja.format. Check Ninja.format documentation for more information.
          * @return {DocumentFragment}
          * @method dom
          */
-        dom: function (html) {
-            var frag = document.createDocumentFragment();
-            $.parseHTML(Ninja.format.apply(this, arguments)).forEach(function (node) {
-                frag.appendChild(node);
-            });
-            return frag;
-        }
+        dom: (function () {
+            if (window.jQuery) {
+                return function dom(html) {
+                    var frag = document.createDocumentFragment();
+                    window.jQuery.parseHTML(html).forEach(function (node) {
+                        frag.appendChild(node);
+                    });
+                    return frag;
+                };
+            } else { // for mobile
+                return function dom(html) {
+                    var templateTag = document.createElement('template');
+                    templateTag.innerHTML = html;
+                    return templateTag.content.cloneNode(true);
+                };
+            }
+        }()),
+
+        /**
+         * Helper to attach event listener to DOM. Uses jQuery if available or falls back to custom implemeentation.
+         * @param {String} html
+         * @return {DocumentFragment}
+         * @method dom
+         */
+        on: (function () {
+            if (window.jQuery) {
+                return function on(node, eventName, func, context) {
+                    $(node).on(eventName, func.bind(context));
+                };
+            } else { // for mobile
+                return function on(node, eventName, func, context) {
+                    node._bindings = node._bindings || {};
+                    var key = `${eventName}#${Ninja.getUID(func)}`;
+                    if (context) { // prevent multiple events from being added.
+                        key += `#${Ninja.getUID(context)}`;
+                    }
+                    if (!node._bindings[key]) {
+                        node._bindings[key] = context ? func.bind(context) : func;
+                    }
+                    func = node._bindings[key];
+                    node.addEventListener(eventName, func);
+                };
+            }
+        }()),
+
+        removeAllEventListeners: (function () {
+            if (window.jQuery) {
+                return function removeAllEventListeners(node) {
+                    $(node).off();
+                };
+            } else { // for mobile
+                return function removeAllEventListeners(node) {
+                    if (node._bindings) {
+                        Object.keys(node._bindings).forEach(function (key) {
+                            var eventName = key.split('#')[0];
+                            var func = node._bindings[key];
+                            node.removeEventListener(eventName, func);
+                        });
+                        delete node._bindings;
+                    }
+                };
+            }
+        }())
     };
 
     Ninja.View = function (config) {
@@ -70,6 +160,20 @@
         }
     };
 
+    /**
+     * Compiles the given template using detected template engine.
+     * 
+     * If compiler isn't available, assume 'template' is an id to an already compiled
+     * template (stored within some namespace) and return 'template' as is.
+     */
+    Ninja.View.compile = function (template) {
+        if (window.nunjucks || window.swig) {
+            return template;
+        } else if (window.doT) {
+            return window.doT.template(template);
+        }
+    };
+
     // Methods and properties
     Object.assign(Ninja.View.prototype, {
         /**
@@ -93,6 +197,9 @@
          * Sets config.
          */
         setConfig: function (config) {
+            if (config && typeof config.template === 'string') {
+                config.template = Ninja.View.compile(config.template);
+            }
             Object.assign(this, config);
         },
 
@@ -108,7 +215,7 @@
          * Deep merge data with this.data, and re-render.
          */
         merge: function (data) {
-            $.extend(true, this.data, data);
+            Ninja.merge(this.data, data);
             this.render();
         },
 
@@ -117,6 +224,8 @@
                 return window.nunjucks.render(this.template, this.data);
             } else if (window.swig) {
                 return window.swig.run(window.swig._precompiled[this.template], this.data, this.template);
+            } else { // assume this.template is a compiled template function that takes data
+                return this.template(this.data);
             }
         },
 
@@ -149,7 +258,7 @@
                 [source].concat(Array.from(source.querySelectorAll('*')))
                     .forEach(function (node) {
                         if (node.nodeType === 1) {
-                            $(node).off();
+                            Ninja.removeAllEventListeners(node);
                         }
                     }, this);
             }
@@ -207,7 +316,8 @@
                     if (node.nodeType === 1) {
                         Array.from(node.attributes).forEach(function (attr) {
                             if (attr.name.startsWith('on-')) {
-                                $(node).on(attr.name.replace(/on-/, ''), this[attr.value].bind(this));
+                                var eventName = attr.name.replace(/on-/, '');
+                                Ninja.on(node, eventName, this[attr.value], this);
                             }
                         }, this);
                     }
