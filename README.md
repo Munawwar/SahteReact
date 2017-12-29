@@ -2,7 +2,7 @@
 
 A client-side library to keep UI in sync.
 
-Uses nunjucks (or swig) template library and skatejs/dom-diff.
+Uses template libraries (like nunjucks, doT or swig) and dom diff.
 
 ### Why?
 
@@ -26,7 +26,7 @@ index.html:
     <head>
         <script src="jquery.js"></script>
 
-        <script src="skatejs-dom-diff.js"></script>
+        <script src="dom-diff.js"></script>
         <script src="template-library/nunjucks-slim.min.js"></script>
         <script src="ninja.js"></script>
 
