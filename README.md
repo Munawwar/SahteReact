@@ -26,8 +26,8 @@ index.html:
     <head>
         <script src="jquery.js"></script>
 
-        <script src="dom-diff.js"></script>
         <script src="template-library/nunjucks-slim.min.js"></script>
+        <script src="dom-diff.js"></script>
         <script src="ninja.js"></script>
 
         <script src="mytemplate.js"></script>
