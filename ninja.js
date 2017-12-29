@@ -247,15 +247,15 @@
             // Step 5: Re-focus
             // Step 6: Re-attach listeners
 
-            var source = this.el;
+            var target = this.el;
 
             // Step 1: Find input field focus, remember it's id attribute, so that it
             // can be refocused later.
             var focusId = document.activeElement.id;
 
             // Step 2: Remove event listeners before patch.
-            if (source) {
-                [source].concat(Array.from(source.querySelectorAll('*')))
+            if (target) {
+                [target].concat(Array.from(target.querySelectorAll('*')))
                     .forEach(function (node) {
                         if (node.nodeType === 1) {
                             Ninja.removeAllEventListeners(node);
@@ -268,15 +268,12 @@
                 el = view.firstElementChild;
 
             // Update existing DOM.
-            if (source) {
-                var parent = source.parentNode,
-                    childIndex = Array.from(parent.childNodes).indexOf(source);
+            if (target) {
+                var parent = target.parentNode,
+                    childIndex = Array.from(parent.childNodes).indexOf(target);
 
                 //Update UI (using DOM diff & patch).
-                skateDomDiff.merge({
-                    source: source,
-                    destination: el
-                });
+                window.domPatch(el, target);
                 this.el = parent.childNodes[childIndex];
             } else {
                 this.el = el;
@@ -348,12 +345,19 @@
 
                 //Update UI (using DOM diff & patch).
                 skateDomDiff.merge({
-                    source: node,
+                    target: node,
                     destination: this.el
                 });
                 this.el = parent.childNodes[childIndex];
                 this.el.ninjaView = this;
             }
+        },
+        
+        append: function (node) {
+            if (!this.el) {
+                return this.render();
+            }
+            node.appendChild(this.el);
         }
     });
 
