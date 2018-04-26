@@ -103,9 +103,9 @@
             } else { // for mobile
                 return function on(node, eventName, func, context) {
                     node._bindings = node._bindings || {};
-                    var key = `${eventName}#${Ninja.getUID(func)}`;
+                    var key = eventName + '#' + Ninja.getUID(func);
                     if (context) { // prevent multiple events from being added.
-                        key += `#${Ninja.getUID(context)}`;
+                        key += '#' + Ninja.getUID(context);
                     }
                     if (!node._bindings[key]) {
                         node._bindings[key] = context ? func.bind(context) : func;
