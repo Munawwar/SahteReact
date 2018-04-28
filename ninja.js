@@ -103,9 +103,9 @@
             } else { // for mobile
                 return function on(node, eventName, func, context) {
                     node._bindings = node._bindings || {};
-                    var key = eventName + '#' + Ninja.getUID(func);
+                    var key = `${eventName}#${Ninja.getUID(func)}`;
                     if (context) { // prevent multiple events from being added.
-                        key += '#' + Ninja.getUID(context);
+                        key += `#${Ninja.getUID(context)}`;
                     }
                     if (!node._bindings[key]) {
                         node._bindings[key] = context ? func.bind(context) : func;
@@ -162,7 +162,7 @@
 
     /**
      * Compiles the given template using detected template engine.
-     * 
+     *
      * If compiler isn't available, assume 'template' is an id to an already compiled
      * template (stored within some namespace) and return 'template' as is.
      */
@@ -322,10 +322,6 @@
         },
 
         mount: function (node) {
-            if (!this.el) {
-                return this.render(node);
-            }
-
             if (!node && this.target) {
                 if (typeof this.target === 'string') {
                     node = document.querySelector(this.target);
@@ -340,19 +336,11 @@
             }
 
             if (node && node.parentNode) {
-                var parent = node.parentNode,
-                    childIndex = Array.from(parent.childNodes).indexOf(node);
-
-                //Update UI (using DOM diff & patch).
-                skateDomDiff.merge({
-                    target: node,
-                    destination: this.el
-                });
-                this.el = parent.childNodes[childIndex];
-                this.el.ninjaView = this;
+                this.el = node;
+                this.render();
             }
         },
-        
+
         append: function (node) {
             if (!this.el) {
                 return this.render();
