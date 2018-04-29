@@ -1,4 +1,4 @@
-/*global window, $, nunjucks, skateDomDiff*/
+/*global window, $, nunjucks*/
 
 (function (factory) {
     window.Ninja = factory();
