@@ -31,7 +31,7 @@
 
     var changes = [];
     for (i = 0, j = 0; i < n.length && j < o.length; i += 1, j += 1) {
-      if (n[i].nodeType === o[j].nodeType && (n[i].nodeType !== 1 || n[i].nodeName === o[i].nodeName)) {
+      if (n[i].nodeType === o[j].nodeType && (n[i].nodeType !== 1 || n[i].nodeName === o[j].nodeName)) {
         changes.push({
             replace: true,
             op: 'replace',
@@ -67,7 +67,7 @@
     var changes = [],
       d = 0; // "displacement". The difference between j and index of insertion or deletion.
     for (i = 0, j = 0; i < n.length && j < o.length; ) {
-      if (n[i].nodeType === o[j].nodeType && (n[i].nodeType !== 1 || n[i].nodeName === o[i].nodeName)) {
+      if (n[i].nodeType === o[j].nodeType && (n[i].nodeType !== 1 || n[i].nodeName === o[j].nodeName)) {
         i += 1;
         j += 1;
       } else {
@@ -112,7 +112,7 @@
     var changes = [],
       d = 0; // "displacement". The difference between j and index of insertion or deletion.
     for (i = 0, j = 0; i < n.length && j < o.length; ) {
-      if (n[i].nodeType === o[j].nodeType && (n[i].nodeType !== 1 || n[i].nodeName === o[i].nodeName)) {
+      if (n[i].nodeType === o[j].nodeType && (n[i].nodeType !== 1 || n[i].nodeName === o[j].nodeName)) {
         i += 1;
         j += 1;
       } else {
@@ -195,14 +195,14 @@
 
   /**
    * Sync (DOM diff and patch) target element to be same as source element.
-   * 
+   *
    * Algorithm optimises document.createElement() calls, since it is the heaviest DOM
    * operation AFAIK.
-   * 
+   *
    * TODO: In future, optimize sorting lists (with keys).
    */
-  window.domPatch = function (sourceNode, targetNode, isNonRootNode) {
-    if (!isNonRootNode && (sourceNode.nodeType !== targetNode.nodeType || (sourceNode.nodeType === 1 && sourceNode.nodeName !== targetNode.nodeName))) {
+  window.domPatch = function (sourceNode, targetNode) {
+    if (sourceNode.nodeType !== targetNode.nodeType || (sourceNode.nodeType === 1 && sourceNode.nodeName !== targetNode.nodeName)) {
       return targetNode.parentNode.replaceChild(sourceNode, targetNode);
     }
     // Should only reach here if both nodes are of same type.
@@ -223,7 +223,7 @@
         targetNode.setAttribute(item.name, item.value); // browser optimizes if update isn't needed.
         correctDOMStateForAddedAttribute(targetNode, item.name, item.value);
       }
-  
+
       // Sync nodes' type and remove extra nodes.
       var changes = diff(sourceNode.childNodes, targetNode.childNodes);
       // keep copy of source childNodes as patch() would move some DOM elements to target.
@@ -232,7 +232,7 @@
       // recursively sync their attributes and their childNodes
       for (i = 0, len = sourceChildNodes.length; i < len; i += 1) {
         if (sourceChildNodes[i] !== targetNode.childNodes[i]) {
-          window.domPatch(sourceChildNodes[i], targetNode.childNodes[i], true);
+          window.domPatch(sourceChildNodes[i], targetNode.childNodes[i]);
         }
       }
     } else if (sourceNode.nodeType === 3 || sourceNode.nodeType === 8) { // text and comment nodes
