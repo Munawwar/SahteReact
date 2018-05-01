@@ -182,7 +182,7 @@
         el.replaceChild(change.value, el.childNodes[change.index]);
         // o.splice(change.index, 1, change.value);
       } else if (change.insert) {
-        el.insertBefore(change.value, el.childNodes[change.index + 1]);
+        el.insertBefore(change.value, el.childNodes[change.index]);
         // o.splice(change.index, 0, change.value);
       } else {
         // o.splice(change.index, 1);
