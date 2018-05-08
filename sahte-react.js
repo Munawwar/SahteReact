@@ -1,9 +1,9 @@
 /*global window, $, nunjucks*/
 
 (function (factory) {
-    window.Ninja = factory();
+    window.SahteReact = factory();
 }(function () {
-    var Ninja = {
+    var utils = {
         // Deep merge helper
         merge: (function () {
             if (window.jQuery) {
@@ -22,7 +22,7 @@
                         for (var key in obj) {
                             if (obj.hasOwnProperty(key)) {
                                 if (typeof obj[key] === 'object')
-                                    out[key] = Ninja.merge(out[key], obj[key]);
+                                    out[key] = utils.merge(out[key], obj[key]);
                                 else
                                     out[key] = obj[key];
                             }
@@ -57,7 +57,7 @@
         getUID: function getUID(obj) {
             if (!obj._uid_) {
                 Object.defineProperty(obj, '_uid_', {
-                    value: Ninja.uuid(),
+                    value: utils.uuid(),
                     enumerable: false
                 });
             }
@@ -103,9 +103,9 @@
             } else { // for mobile
                 return function on(node, eventName, func, context) {
                     node._bindings = node._bindings || {};
-                    var key = eventName + '#' + Ninja.getUID(func);
+                    var key = eventName + '#' + utils.getUID(func);
                     if (context) { // prevent multiple events from being added.
-                        key += '#' + Ninja.getUID(context);
+                        key += '#' + utils.getUID(context);
                     }
                     if (!node._bindings[key]) {
                         node._bindings[key] = context ? func.bind(context) : func;
@@ -136,8 +136,8 @@
         }())
     };
 
-    Ninja.View = function (config) {
-        this.id = Ninja.View.generateUId();
+    var SahteReact = function (config) {
+        this.id = SahteReact.generateUId();
         this._data = {};
         this.setConfig(config);
 
@@ -160,22 +160,34 @@
         }
     };
 
-    /**
-     * Compiles the given template using detected template engine.
-     *
-     * If compiler isn't available, assume 'template' is an id to an already compiled
-     * template (stored within some namespace) and return 'template' as is.
-     */
-    Ninja.View.compile = function (template) {
-        if (window.nunjucks || window.swig) {
-            return template;
-        } else if (window.doT) {
-            return window.doT.template(template);
+    // Static methods and properties
+    Object.assign(SahteReact, {
+        uid: 1,
+        utils: utils,
+        generateUId: function () {
+            var id = 'view-' + SahteReact.uid;
+            SahteReact.uid += 1;
+            return id;
+        },
+
+        /**
+         * Compiles the given template using detected template engine.
+         *
+         * If compiler isn't available, assume 'template' is an id to an already compiled
+         * template (stored within some namespace) and return 'template' as is.
+         */
+        compile: function (template) {
+            if (window.nunjucks || window.swig) {
+                return template;
+            } else if (window.doT) {
+                return window.doT.template(template);
+            }
         }
-    };
+    });
+
 
     // Methods and properties
-    Object.assign(Ninja.View.prototype, {
+    Object.assign(SahteReact.prototype, {
         /**
          * The data object.
          * This is a private variable accessed through this.data
@@ -198,7 +210,7 @@
          */
         setConfig: function (config) {
             if (config && typeof config.template === 'string') {
-                config.template = Ninja.View.compile(config.template);
+                config.template = SahteReact.compile(config.template);
             }
             Object.assign(this, config);
         },
@@ -215,7 +227,7 @@
          * Deep merge data with this.data, and re-render.
          */
         merge: function (data) {
-            Ninja.merge(this.data, data);
+            utils.merge(this.data, data);
             this.render();
         },
 
@@ -258,13 +270,13 @@
                 [target].concat(Array.from(target.querySelectorAll('*')))
                     .forEach(function (node) {
                         if (node.nodeType === 1) {
-                            Ninja.removeAllEventListeners(node);
+                            utils.removeAllEventListeners(node);
                         }
                     }, this);
             }
 
             // Step 3: Render/Update UI
-            var view = Ninja.dom(this.getHTML()),
+            var view = utils.dom(this.getHTML()),
                 el = view.firstElementChild;
 
             // Update existing DOM.
@@ -279,7 +291,7 @@
                 this.el = el;
             }
 
-            this.el.ninjaView = this;
+            this.el.sahteReactInstance = this;
 
             // Step 4. Resolve element ref and refs.
             // Note:
@@ -314,7 +326,7 @@
                         Array.from(node.attributes).forEach(function (attr) {
                             if (attr.name.startsWith('on-')) {
                                 var eventName = attr.name.replace(/on-/, '');
-                                Ninja.on(node, eventName, this[attr.value], this);
+                                utils.on(node, eventName, this[attr.value], this);
                             }
                         }, this);
                     }
@@ -349,15 +361,5 @@
         }
     });
 
-    // Static methods and properties
-    Object.assign(Ninja.View, {
-        uid: 1,
-        generateUId: function () {
-            var id = 'view-' + Ninja.View.uid;
-            Ninja.View.uid += 1;
-            return id;
-        }
-    });
-
-    return Ninja;
+    return SahteReact;
 }));

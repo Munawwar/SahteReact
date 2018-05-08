@@ -1,8 +1,8 @@
 {
-  "name": "ninja",
+  "name": "sahte-react",
   "version": "0.1.0",
   "description": "Library to use nunjucks and dom-diff to manage front-end UI.",
-  "main": "ninja.js",
+  "main": "sahte-react.js",
   "directories": {
     "test": "test"
   },
@@ -10,7 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "ninja"
+    "fake",
+    "react"
   ],
   "author": "Munawwar",
   "license": "MIT",

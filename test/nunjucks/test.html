@@ -4,14 +4,14 @@
 
         <script src="../../dom-diff.js"></script>
         <script src="../../template-library/nunjucks-slim.min.js"></script>
-        <script src="../../ninja.js"></script>
+        <script src="../../sahte-react.js"></script>
 
         <script src="myview.js"></script>
     </head>
     <body>
         <div id="myview"></div>
         <script>
-            var view = new Ninja.View({
+            var view = new SahteReact({
                 template: 'myview',
                 data: {text: 'Test'},
                 target: '#myview',

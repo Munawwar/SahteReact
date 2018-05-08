@@ -1,8 +1,10 @@
-## Ninja
+## SahteReact
 
 A client-side library to keep UI in sync.
 
 Uses template libraries (like nunjucks, doT or swig) and dom diff.
+
+( "Sahte" means "fake" in Turkish ;) )
 
 ### Why?
 
@@ -28,14 +30,14 @@ index.html:
 
         <script src="template-library/nunjucks-slim.min.js"></script>
         <script src="dom-diff.js"></script>
-        <script src="ninja.js"></script>
+        <script src="sahte-react.js"></script>
 
         <script src="mytemplate.js"></script>
     </head>
     <body>
         <div id="node-to-sync"></div>
         <script>
-            var view = new Ninja.View({
+            var view = new SahteReact({
                 template: 'mytemplate',
                 data: { text: 'Test' },
                 target: '#node-to-sync',
@@ -84,5 +86,5 @@ Now you can use `this.spanEl` (inside a view method) or 'view.spanEl` (from outs
 
 ### Debug access
 
-One can do `rootElement.ninjaView` to get access to the view object from the developer tools. It is only for
+One can do `rootElement.sahteReactInstance` to get access to the view object from the developer tools. It is only for
 debugging purposes. Never use it in code.

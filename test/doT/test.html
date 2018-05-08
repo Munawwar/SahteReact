@@ -2,12 +2,12 @@
     <head>
         <script src="../../dom-diff.js"></script>
         <script src="../../template-library/doT.min.js"></script>
-        <script src="../../ninja.js"></script>
+        <script src="../../sahte-react.js"></script>
     </head>
     <body>
         <div id="myview"></div>
         <script>
-            var view = new Ninja.View({
+            var view = new SahteReact({
                 template: window.doT.template(
                     `<div on-click="onClick">
                         <span ref="spanEl">{{= it.text }}</span>
