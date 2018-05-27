@@ -209,13 +209,13 @@
     if (sourceNode.nodeType === 1) { // HTMLElements
       // Sync attributes
       // Remove any attributes not in source
-      var i = targetNode.attributes.length - 1, len, item;
+      var i = targetNode.attributes.length - 1, len, item, attr;
       for (; i >= 0; i -= 1) {
-        item = targetNode.attributes.item(i);
-        if (!sourceNode.attributes.getNamedItem(item.name)) {
-          targetNode.attributes.removeNamedItem(item.name);
-          correctDOMStateForRemovedAttribute(targetNode, item.name);
+        attr = sourceNode.attributes.item(i);
+        if (attr.name !== 'value') { // Security: prevent CSS key loggers
+          targetNode.setAttribute(attr.name, attr.value); // browser optimizes if update isn't needed.
         }
+        correctDOMStateForAddedAttribute(targetNode, attr.name, attr.value);
       }
       // update the rest
       for (i = 0, len = sourceNode.attributes.length; i < len; i += 1) {
