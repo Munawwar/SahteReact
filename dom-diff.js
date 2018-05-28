@@ -209,7 +209,7 @@
     if (sourceNode.nodeType === 1) { // HTMLElements
       // Sync attributes
       // Remove any attributes not in source
-      var i = targetNode.attributes.length - 1, len, item, attr;
+      var i = targetNode.attributes.length - 1, len, attr;
       for (; i >= 0; i -= 1) {
         attr = sourceNode.attributes.item(i);
         if (attr.name !== 'value') { // Security: prevent CSS key loggers
@@ -219,9 +219,9 @@
       }
       // update the rest
       for (i = 0, len = sourceNode.attributes.length; i < len; i += 1) {
-        item = sourceNode.attributes.item(i);
-        targetNode.setAttribute(item.name, item.value); // browser optimizes if update isn't needed.
-        correctDOMStateForAddedAttribute(targetNode, item.name, item.value);
+        attr = sourceNode.attributes.item(i);
+        targetNode.setAttribute(attr.name, attr.value); // browser optimizes if update isn't needed.
+        correctDOMStateForAddedAttribute(targetNode, attr.name, attr.value);
       }
 
       // Sync nodes' type and remove extra nodes.
