@@ -218,8 +218,9 @@
         /**
          * Set data on this.data (using Object.assign), and re-render.
          */
-        assign: function (data) {
-            Object.assign(this.data, data);
+        assign: function () {
+            var args = Array.prototype.slice.call(arguments);
+            Object.assign.apply(Object, [this.data].concat(args));
             this.render();
         },
 
