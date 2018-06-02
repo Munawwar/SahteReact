@@ -211,16 +211,18 @@
       // Remove any attributes not in source
       var i = targetNode.attributes.length - 1, len, attr;
       for (; i >= 0; i -= 1) {
-        attr = sourceNode.attributes.item(i);
-        if (attr.name !== 'value') { // Security: prevent CSS key loggers
-          targetNode.setAttribute(attr.name, attr.value); // browser optimizes if update isn't needed.
+        attr = targetNode.attributes.item(i);
+        if (!sourceNode.attributes.getNamedItem(attr.name)) {
+          targetNode.attributes.removeNamedItem(attr.name);
+          correctDOMStateForRemovedAttribute(targetNode, attr.name);
         }
-        correctDOMStateForAddedAttribute(targetNode, attr.name, attr.value);
       }
       // update the rest
       for (i = 0, len = sourceNode.attributes.length; i < len; i += 1) {
         attr = sourceNode.attributes.item(i);
-        targetNode.setAttribute(attr.name, attr.value); // browser optimizes if update isn't needed.
+        if (attr.name !== 'value') { // Security: prevent CSS key loggers
+          targetNode.setAttribute(attr.name, attr.value); // browser optimizes if update isn't needed.
+        }
         correctDOMStateForAddedAttribute(targetNode, attr.name, attr.value);
       }
 
