@@ -154,6 +154,7 @@
                 return this._data;
             }
         });
+        this.init();
         //Trigger render.
         if (data) {
             this.data = data;
@@ -204,6 +205,11 @@
          * (Optional) The elment to replace (on first render).
          */
         target: null,
+        
+        /**
+         * Allow overridable view-specific init() method
+         */
+        init: function () {},
 
         /**
          * Sets config.
