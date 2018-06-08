@@ -52,6 +52,8 @@ index.html:
 </html>
 ```
 
+Note: An assumption made by Sahte is that the template used, is always wrapped inside a single HTML tag. In other words, a SahteReact instance assumes the template has a single root element. If not, then Sahte would take the first element (as root) and ignore the rest.
+
 ### Precompiling command
 
 nunjucks example:
