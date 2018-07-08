@@ -69,7 +69,7 @@ swig/bin/swig.js compile mytemplate.html --wrap-start="swig._precompiled = swig.
 swig._precompiled['mytemplate'] = " > mytemplate.js
 ```
 
-**Note**: If you don't want to use any template engine, then override `getHTML()` method (don't set `template` property on the instance of course) and return HTML using state object from `this.data`.
+**Note**: If you don't want to use any template engine, then declare `getHTML()` method and return HTML using state object from `this.data` (and also don't set `template` property on the instance of course).
 
 ### How to update the view?
 
