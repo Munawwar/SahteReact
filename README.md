@@ -54,7 +54,9 @@ index.html:
 
 **Note**: An assumption made by Sahte is that the template used, is always wrapped inside a single HTML tag. In other words, a SahteReact instance assumes the template has a single root element. If not, then Sahte would take the first element (as root) and ignore the rest.
 
-### Precompiling command
+**Note 2**: `view.mount()` will update DOM immediately (synchronous/blocking call).
+
+### Template precompiling command
 
 nunjucks example:
 ```
@@ -67,14 +69,18 @@ swig/bin/swig.js compile mytemplate.html --wrap-start="swig._precompiled = swig.
 swig._precompiled['mytemplate'] = " > mytemplate.js
 ```
 
+**Note**: If you don't want to use any template engine, then override `getHTML()` method (don't set `template` property on the instance of course) and return HTML using state object from `this.data`.
+
 ### How to update the view?
 
 ```
 view.data = { text: 'Test 2'}; //uses setter to detect change
 ```
-Or use view.assign() or view.merge();
+Or use view.assign() to not overwrite existing props
 
-view.assign uses Object.assign, and view.merge does deep merge.
+view.assign's signature is exactly like Object.assign().
+
+**Note**: Updating states updates the DOM immediately (synchronous/blocking call). So it is generally a good idea to reduce state changes to a single call per user action.. for example a single call for a click action. You can use temporary objects if needed to reduce calls. 
 
 ### Quick access to DOM nodes
 
