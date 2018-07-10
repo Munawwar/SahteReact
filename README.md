@@ -71,6 +71,17 @@ swig._precompiled['mytemplate'] = " > mytemplate.js
 
 **Note**: If you don't want to use any template engine, then declare `getHTML()` method and return HTML using state object from `this.data` (and also don't set `template` property on the instance of course).
 
+```
+var view = new SahteReact({
+    ...
+    
+    getHTML: function () {
+        var states = this.data;
+        return `<div>${states.text}</div>`;
+    }
+});
+```
+
 ### How to update the view?
 
 ```
@@ -80,7 +91,7 @@ Or use view.assign() to not overwrite existing props
 
 view.assign's signature is exactly like Object.assign().
 
-**Note**: Updating states updates the DOM immediately (synchronous/blocking call). So it is generally a good idea to reduce state changes to a single call per user action.. for example a single call for a click action. You can use temporary objects if needed to reduce calls. 
+**Note**: Updating states updates the DOM immediately (synchronous/blocking call). So it is generally a good idea to reduce state changes to a single call per user action.. for example a click action would call `view.assign()` only once. You can use temporary objects if needed to reduce calls.
 
 ### Quick access to DOM nodes
 
