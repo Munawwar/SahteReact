@@ -183,6 +183,8 @@
             } else if (window.doT) {
                 return window.doT.template(template);
             }
+            // doesn't support pre-compilation
+            return template;
         }
     });
 
