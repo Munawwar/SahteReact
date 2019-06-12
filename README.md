@@ -71,7 +71,7 @@ SahteReact.prototype.getHTML = function () {
 ```
 
 Hoewever if your templating engine supports pre-compiling (which makes rendering much faster), then it's better to set it up like so:
-```
+```js
 SahteReact.compile = function (template) {
   return myFunkyTemplateEngine.compile(template);
 };
@@ -84,7 +84,8 @@ SahteReact.prototype.getHTML = function () {
 
 If you don't want to use any template engine then override your `getHTML()` function per instance
 (and don't set `template` property on the instance of course)
-```
+
+```js
 var view = new SahteReact({
     // ...
     
