@@ -1,6 +1,6 @@
 ## SahteReact
 
-A client-side library to keep UI in sync.
+Reuse your server side templates on the client side.. react-ish style.
 
 Uses template libraries (like nunjucks, doT or swig) and dom diff.
 
@@ -58,7 +58,7 @@ index.html:
 
 **Important note**: The HTML should be wrapped inside a single HTML tag. In other words, a SahteReact instance assumes the template has a single root element. If not, then Sahte would take the first element (as root) and ignore the rest.
 
-**Note 2**: `view.mount()` will update DOM immediately (synchronous/blocking call).
+**Note 2**: `view.mount()` or `view.append()` will update DOM immediately (synchronous/blocking call).
 
 ### But I want to use X templating engine!!
 
