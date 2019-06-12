@@ -42,38 +42,49 @@ index.html:
             var view = new SahteReact({
                 template: 'mytemplate',
                 data: { text: 'Test' },
-                target: '#node-to-sync',
+                target: '#node-to-sync', // optional
 
                 onClick: function () {
                     console.log('Clicked!');
                 }
             });
             view.mount();
+            // or if you don't want to use target prop, but want to append to document body:
+            // view.append(document.body)
         </script>
     </body>
 </html>
 ```
 
-**Note**: An assumption made by Sahte is that the template used, is always wrapped inside a single HTML tag. In other words, a SahteReact instance assumes the template has a single root element. If not, then Sahte would take the first element (as root) and ignore the rest.
+**Important note**: The HTML should be wrapped inside a single HTML tag. In other words, a SahteReact instance assumes the template has a single root element. If not, then Sahte would take the first element (as root) and ignore the rest.
 
 **Note 2**: `view.mount()` will update DOM immediately (synchronous/blocking call).
 
-### Template precompiling command
+### But I want to use X templating engine!!
 
-nunjucks example:
-```
-nunjucks/bin/precompile --name mytemplate mytemplate.html > mytemplate.js
-```
-
-swig example:
-```
-swig/bin/swig.js compile mytemplate.html --wrap-start="swig._precompiled = swig._precompiled || {};
-swig._precompiled['mytemplate'] = " > mytemplate.js
-```
-
-**Note**: If you don't want to use any template engine, then declare `getHTML()` method and return HTML using state object from `this.data` (and also don't set `template` property on the instance of course).
+Simplest way to achieve this is to override SahteReact's default `getHTML()` methods.
 
 ```js
+SahteReact.prototype.getHTML = function () {
+  return myFunkyTemplateEngine(this.template, this.data);
+};
+```
+
+Hoewever if your templating engine supports pre-compiling (which makes rendering much faster), then it's better to set it up like so:
+```
+SahteReact.compile = function (template) {
+  return myFunkyTemplateEngine.compile(template);
+};
+
+SahteReact.prototype.getHTML = function () {
+  var states = this.data;
+  return this.template(states);
+};
+```
+
+If you don't want to use any template engine then override your `getHTML()` function per instance
+(and don't set `template` property on the instance of course)
+```
 var view = new SahteReact({
     // ...
     
@@ -109,3 +120,16 @@ Now you can use `this.spanEl` (inside a view method) or `view.spanEl` (from outs
 
 One can do `rootElement.sahteReactInstance` to get access to the view object from the developer tools. It is only for
 debugging purposes. Never use it in code.
+
+### Template precompiling for examples folder
+
+nunjucks example:
+```
+nunjucks/bin/precompile --name mytemplate mytemplate.html > mytemplate.js
+```
+
+swig example:
+```
+swig/bin/swig.js compile mytemplate.html --wrap-start="swig._precompiled = swig._precompiled || {};
+swig._precompiled['mytemplate'] = " > mytemplate.js
+```
