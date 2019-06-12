@@ -122,7 +122,7 @@ Now you can use `this.spanEl` (inside a view method) or `view.spanEl` (from outs
 One can do `rootElement.sahteReactInstance` to get access to the view object from the developer tools. It is only for
 debugging purposes. Never use it in code.
 
-### Template precompiling for examples folder
+### Template precompiling for tests folder
 
 nunjucks example:
 ```
