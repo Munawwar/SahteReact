@@ -2,6 +2,7 @@
 
 (function (factory) {
     window.SahteReact = factory();
+    window.SahteStore = window.SahteReact.store;
 }(function () {
     var utils = {
         // Deep merge helper

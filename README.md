@@ -65,8 +65,8 @@ index.html:
 Simplest way to achieve this is to override SahteReact's default `getHTML()` methods.
 
 ```js
-SahteReact.prototype.getHTML = function () {
-  return myFunkyTemplateEngine(this.template, this.data);
+SahteReact.prototype.getHTML = function (data) {
+  return myFunkyTemplateEngine(this.template, data);
 };
 ```
 
@@ -76,9 +76,8 @@ SahteReact.compile = function (template) {
   return myFunkyTemplateEngine.compile(template);
 };
 
-SahteReact.prototype.getHTML = function () {
-  var states = this.data;
-  return this.template(states);
+SahteReact.prototype.getHTML = function (data) {
+  return this.template(data);
 };
 ```
 
@@ -89,9 +88,8 @@ If you don't want to use any template engine then override your `getHTML()` func
 var view = new SahteReact({
     // ...
     
-    getHTML: function () {
-        var states = this.data;
-        return `<div>${states.text}</div>`;
+    getHTML: function (data) {
+        return `<div>${data.text}</div>`;
     }
 });
 ```
@@ -99,7 +97,7 @@ var view = new SahteReact({
 ### How to update the view?
 
 ```js
-view.data = { text: 'Test 2'}; //uses setter to detect change
+view.data = { text: 'Test 2' }; //uses setter to detect change
 ```
 Or use `view.assign()` to not overwrite existing props
 
@@ -121,6 +119,54 @@ Now you can use `this.spanEl` (inside a view method) or `view.spanEl` (from outs
 
 One can do `rootElement.sahteReactInstance` to get access to the view object from the developer tools. It is only for
 debugging purposes. Never use it in code.
+
+### Sahte "Redux"
+
+Sahte React comes with a simplified singleton redux-like state store, so that you can have multiple views with common states stored in there. Updating the store data will re-render connected views automatically.
+
+If you don't "connect" your view to specific properties, then changes to those states will not cause the view to refresh.
+
+```js
+// initialize global store
+SahteStore.assign({
+    counter: {
+        value: 1
+    }
+});
+
+// create some views that use the store data.
+// all of the store's properties are accessible through property named 'props'
+// from within the view.
+var view1 = new SahteReact({
+    template: `<div><span>Counter = {{= it.props.counter.value }}</span></div>`,
+    // furthermore, if you want the component to get updated when the store data changes
+    // you need to explicitly "connect" to that property.. i.e you must say which properties
+    // of the store should cause this view to re-render. This is a performance optimization
+    // like redux.
+    connect: ['counter'],
+    target: '#myview1'
+});
+var view2 = new SahteReact({
+    template: `<div><span>Counter = {{= it.props.counter.value }}</span></div>`,
+    connect: ['counter'],
+    target: '#myview2'
+});
+view1.mount();
+view2.mount();
+
+// demonstrating how updating one data source, re-renders multiple views
+// so.. update counter
+window.setInterval(function () {
+    SahteStore.assign({
+        counter: {
+            value: SahteStore.data.counter.value + 1
+        }
+    });
+}, 1000);
+```
+This whole thing is a disguised performance optimization. You can naively put all your HTML within a single SahteReact view and the states within it.
+But.. that could take a hit on rendering performance. So Sahte "Redux" gives you an option to make multiple views and refresh only the views that needs refresh (with some manual "connecting").
+
 
 ### Template precompiling for tests folder
 

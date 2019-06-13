@@ -1,0 +1,45 @@
+<html>
+    <head>
+        <script src="../../dom-diff.js"></script>
+        <script src="../../template-library/doT.min.js"></script>
+        <script src="../../sahte-react.js"></script>
+    </head>
+    <body>
+        <div id="myview1"></div>
+        <div id="myview2"></div>
+        <div id="myview3"></div>
+        <script>
+            SahteReact.store.data = {
+                counter: {
+                    value: 1
+                }
+            };
+            var view1 = new SahteReact({
+                template: `<div><span>Counter = {{= it.props.counter.value }}</span></div>`,
+                connect: ['counter'],
+                target: '#myview1'
+            });
+            var view2 = new SahteReact({
+                template: `<div><span>Counter = {{= it.props.counter.value }}</span></div>`,
+                connect: ['counter'],
+                target: '#myview2'
+            });
+            var view3 = new SahteReact({
+                template: `<div><span>Must not update. Counter = {{= it.props.counter.value }}</span></div>`,
+                target: '#myview3'
+            });
+            view1.mount();
+            view2.mount();
+            view3.mount();
+
+            // update counter
+            window.setInterval(function () {
+                SahteStore.assign({
+                    counter: {
+                        value: SahteStore.data.counter.value + 1
+                    }
+                });
+            }, 1000);
+        </script>
+    </body>
+</html>
