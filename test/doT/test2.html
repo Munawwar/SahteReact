@@ -15,17 +15,17 @@
                 }
             };
             var view1 = new SahteReact({
-                template: `<div><span>Counter = {{= it.props.counter.value }}</span></div>`,
+                template: `<div><span>Counter = {{= it.counter.value }}</span></div>`,
                 connect: ['counter'],
                 target: '#myview1'
             });
             var view2 = new SahteReact({
-                template: `<div><span>Counter = {{= it.props.counter.value }}</span></div>`,
+                template: `<div><span>Counter = {{= it.counter.value }}</span></div>`,
                 connect: ['counter'],
                 target: '#myview2'
             });
             var view3 = new SahteReact({
-                template: `<div><span>Must not update. Counter = {{= it.props.counter.value }}</span></div>`,
+                template: `<div><span>View 3 cant access global store's counter.value, because it isn't connected to it</span></div>`,
                 target: '#myview3'
             });
             view1.mount();

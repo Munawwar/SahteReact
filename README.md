@@ -120,11 +120,9 @@ Now you can use `this.spanEl` (inside a view method) or `view.spanEl` (from outs
 One can do `rootElement.sahteReactInstance` to get access to the view object from the developer tools. It is only for
 debugging purposes. Never use it in code.
 
-### Sahte "Redux"
+### Sahte "Redux" - AKA performance improvement for large views
 
 Sahte React comes with a simplified singleton redux-like state store, so that you can have multiple views with common states stored in there. Updating the store data will re-render connected views automatically.
-
-If you don't "connect" your view to specific properties, then changes to those states will not cause the view to refresh.
 
 ```js
 // initialize global store
@@ -135,15 +133,12 @@ SahteStore.assign({
 });
 
 // create some views that use the store data.
-// all of the store's properties are accessible through property named 'props'
-// from within the view.
 var view1 = new SahteReact({
-    template: `<div><span>Counter = {{= it.props.counter.value }}</span></div>`,
-    // furthermore, if you want the component to get updated when the store data changes
-    // you need to explicitly "connect" to that property.. i.e you must say which properties
-    // of the store should cause this view to re-render. This is a performance optimization
-    // like redux.
+    // if you want to be able to access a property from the store, then
+    // you need to explicitly "connect" to that property. This is a performance
+    // optimization (like redux).
     connect: ['counter'],
+    template: `<div><span>Counter = {{= it.counter.value }}</span></div>`,
     target: '#myview1'
 });
 var view2 = new SahteReact({
@@ -156,16 +151,24 @@ view2.mount();
 
 // demonstrating how updating one data source, re-renders multiple views
 // so.. update counter
-window.setInterval(function () {
+var incrementCounterAction = function () {
     SahteStore.assign({
         counter: {
             value: SahteStore.data.counter.value + 1
         }
     });
-}, 1000);
+};
+window.setInterval(incrementCounterAction, 1000);
 ```
-This whole thing is a disguised performance optimization. You can naively put all your HTML within a single SahteReact view and the states within it.
-But.. that could take a hit on rendering performance. So Sahte "Redux" gives you an option to make multiple views and refresh only the views that needs refresh (with some manual "connecting").
+
+Note that if you don't "connect" your view to specific properties from the sahte store, then you cannot access those property at all. You templating engine would throw errors.
+
+Also note; like redux, I have moved the code that manipulates the central store (data side effects) to separate function(s) (i.e action). Even though this is completely optional, I would recommended always doing it that way, since it is later easier to find out what's manipulating the central store. If you put this code in the view it would be harder to find later.
+
+Note to Redux fans: However there is no concept called reducers like redux. If you want it, you can use a 3rd party publisher-subscriber library and implement the reducer layer yourself. This functionality isn't provided by SahteReact out-of-the-box.
+
+Important note: This whole thing is a disguised performance optimization. You can naively put all your HTML within a single SahteReact view and all the states within it.
+But.. that could take a hit on rendering performance. So Sahte "Redux" gives you an option to make multiple views and refresh only the views that needs refresh (with some manual "connecting" from the developer's end).
 
 
 ### Template precompiling for tests folder

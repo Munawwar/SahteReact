@@ -367,7 +367,12 @@
             }
 
             // Step 3: Render/Update UI
-            var data = Object.assign({ props: SahteReact.store._data }, this.data);
+            var storeData = SahteReact.store._data;
+            var storeDataSubset = (this.connect || []).reduce(function (acc, prop) {
+                acc[prop] = storeData[prop];
+                return acc;
+            }, {});
+            var data = Object.assign(storeDataSubset, this.data);
             var view = utils.dom(this.getHTML(data));
             var el = view.firstElementChild;
 
