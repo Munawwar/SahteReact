@@ -364,7 +364,7 @@
 
         append: function (node) {
             if (!this.el) {
-                return this.render();
+                this.render();
             }
             node.appendChild(this.el);
         }
