@@ -6,7 +6,7 @@ Uses template libraries (like nunjucks, doT or swig) and dom diff.
 
 ( "Sahte" means "fake" in Turkish ;) )
 
-Sahte React is pretty small - at the moment Sahte React + doT template library minified & gzipped weighs only 3.88 KB
+Sahte React is pretty small - at the moment Sahte React + doT template library minified & gzipped weighs only 4.4 KB
 
 ### Why?
 
