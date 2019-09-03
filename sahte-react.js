@@ -172,6 +172,7 @@
             return id;
         },
 
+        _liquidEngine: null,
         /**
          * Compiles the given template using detected template engine.
          *
@@ -183,6 +184,11 @@
                 return template;
             } else if (window.doT) {
                 return window.doT.template(template);
+            } else if (window.liquidjs) {
+                if (!SahteReact._liquidEngine) {
+                    SahteReact._liquidEngine = new window.liquidjs.Liquid();
+                }
+                return SahteReact._liquidEngine.parse(template);
             }
             // doesn't support pre-compilation
             return template;
@@ -327,6 +333,8 @@
                 return window.nunjucks.render(this.template, data);
             } else if (window.swig) {
                 return window.swig.run(window.swig._precompiled[this.template], data, this.template);
+            } else if (SahteReact._liquidEngine) {
+                return SahteReact._liquidEngine.renderSync(this.template, data);
             } else { // assume this.template is a compiled template function that takes data
                 return this.template(data);
             }
