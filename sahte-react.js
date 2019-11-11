@@ -290,7 +290,7 @@
         target: null,
 
         /**
-         * (Optional) An array of props to listen to from SahteReact.store (it's like a global redux store)
+         * (Optional) An array of props to listen to from SahteReact.store (it's a global state store)
          * This instance will re-render (when mounted) when the specified props change in the global store
          * Example: ['cart', 'wishlist']
          */
