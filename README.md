@@ -2,7 +2,7 @@
 
 Reuse your server side templates on the client side.. react-ish style.
 
-Uses template libraries (like nunjucks, doT or swig) and dom diff.
+Uses template libraries (like nunjucks, liquid js, doT, swig..) and dom diff.
 
 ( "Sahte" means "fake" in Turkish ;) )
 
