@@ -2,6 +2,7 @@
 
 (function (factory) {
     window.SahteReact = factory();
+    window.SahteStore = window.SahteReact.store;
 }(function () {
     var utils = {
         // Deep merge helper
@@ -171,6 +172,7 @@
             return id;
         },
 
+        _liquidEngine: null,
         /**
          * Compiles the given template using detected template engine.
          *
@@ -182,9 +184,88 @@
                 return template;
             } else if (window.doT) {
                 return window.doT.template(template);
+            } else if (window.liquidjs) {
+                if (!SahteReact._liquidEngine) {
+                    SahteReact._liquidEngine = new window.liquidjs.Liquid();
+                }
+                return SahteReact._liquidEngine.parse(template);
             }
             // doesn't support pre-compilation
             return template;
+        },
+
+        // a global store for Sahte views (it's like a singleton global redux store)
+        // it only does a shallow (i.e level 1) equality check of the store data properties
+        // for notifying relevant connected views to re-render
+        store: {
+            _data: {},
+            subscribers: [],
+            subscribe: function (func, propsToListenFor, context) {
+                if (typeof func !== 'function' || !Array.isArray(propsToListenFor)) {
+                    return;
+                }
+                var alreadyAdded = this.subscribers.some(function (subscriber) {
+                    return (subscriber.callback === func && (context === undefined || context === subscriber.context));
+                });
+                if (!alreadyAdded) {
+                    this.subscribers.push({
+                        callback: func,
+                        props: propsToListenFor,
+                        context: context
+                    });
+                }
+            },
+            unsubscribe: function (func, context) {
+                this.subscribers = this.subscribers.filter(function (subscriber) {
+                    return !(subscriber.callback === func && (context === undefined || context === subscriber.context));
+                });
+            },
+            assign: function (newData) {
+                if (typeof newData !== 'object') {
+                    return;
+                }
+                var currentData = this._data;
+                var changedProps = Object.keys(newData).filter(function (prop) {
+                    return currentData[prop] !== newData[prop];
+                });
+                Object.assign(this._data, newData);
+                this.notifySubscribers(changedProps);
+            },
+            notifySubscribers: function (changedProps) {
+                var changedPropsLookup = changedProps.reduce(function (acc, prop) {
+                    acc[prop] = 1;
+                    return acc;
+                }, {});
+                this.subscribers.forEach(function (subscriber) {
+                    var matches = subscriber.props.some(function (prop) {
+                        if (typeof prop !== 'string') {
+                            return false;
+                        }
+                        return changedPropsLookup[prop];
+                    });
+                    if (matches) {
+                        subscriber.callback.call(subscriber.context);
+                    }
+                });
+            }
+        }
+    });
+
+    Object.defineProperty(SahteReact.store, 'data', {
+        configurable: false,
+        set: function (data) {
+            if (typeof data !== 'object') {
+                return;
+            }
+            var currentData = this._data;
+            var changedProps = Object.keys(data).filter(function (prop) {
+                return currentData[prop] !== data[prop];
+            });
+            this._data = data;
+            this.notifySubscribers(changedProps);
+        },
+        get: function () {
+            return this._data;
         }
     });
 
@@ -207,6 +288,13 @@
          * (Optional) The elment to replace (on first render).
          */
         target: null,
+
+        /**
+         * (Optional) An array of props to listen to from SahteReact.store (it's a global state store)
+         * This instance will re-render (when mounted) when the specified props change in the global store
+         * Example: ['cart', 'wishlist']
+         */
+        connect: null,
         
         /**
          * Allow overridable view-specific init() method
@@ -240,13 +328,15 @@
             this.render();
         },
 
-        getHTML: function () {
+        getHTML: function (data) {
             if (window.nunjucks) {
-                return window.nunjucks.render(this.template, this.data);
+                return window.nunjucks.render(this.template, data);
             } else if (window.swig) {
-                return window.swig.run(window.swig._precompiled[this.template], this.data, this.template);
+                return window.swig.run(window.swig._precompiled[this.template], data, this.template);
+            } else if (SahteReact._liquidEngine) {
+                return SahteReact._liquidEngine.renderSync(this.template, data);
             } else { // assume this.template is a compiled template function that takes data
-                return this.template(this.data);
+                return this.template(data);
             }
         },
 
@@ -285,8 +375,14 @@
             }
 
             // Step 3: Render/Update UI
-            var view = utils.dom(this.getHTML()),
-                el = view.firstElementChild;
+            var storeData = SahteReact.store._data;
+            var storeDataSubset = (this.connect || []).reduce(function (acc, prop) {
+                acc[prop] = storeData[prop];
+                return acc;
+            }, {});
+            var data = Object.assign(storeDataSubset, this.data);
+            var view = utils.dom(this.getHTML(data));
+            var el = view.firstElementChild;
 
             // Update existing DOM.
             if (target) {
@@ -343,6 +439,10 @@
         },
 
         mount: function (node) {
+            if (this.connect) {
+                SahteReact.store.subscribe(this.render, this.connect, this);
+            }
+
             if (!node && this.target) {
                 if (typeof this.target === 'string') {
                     node = document.querySelector(this.target);
@@ -363,10 +463,19 @@
         },
 
         append: function (node) {
+            if (this.connect) {
+                SahteReact.store.subscribe(this.render, this.connect, this);
+            }
+
             if (!this.el) {
                 this.render();
             }
             node.appendChild(this.el);
+        },
+
+        unmount: function () {
+            SahteReact.store.unsubscribe(this.render, this.connect);
+            this.el.parentNode.removeChild(this.el);
         }
     });
 

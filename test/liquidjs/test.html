@@ -1,0 +1,25 @@
+<html>
+    <head>
+        <script src="../../dom-diff.js"></script>
+        <script src="../../template-library/liquid.min.js"></script>
+        <script src="../../sahte-react.js"></script>
+    </head>
+    <body>
+        <div id="myview"></div>
+        <script>
+            var view = new SahteReact({
+                template:
+                    `<div on-click="onClick">
+                        <span ref="spanEl">{{ text }}</span>
+                    </div>`
+                ,
+                data: { text: 'Test' },
+                target: '#myview',
+                onClick: function () {
+                    console.log('Clicked!');
+                }
+            });
+            view.mount();
+        </script>
+    </body>
+</html>
