@@ -1,52 +1,42 @@
-/*global window, $, nunjucks*/
+/*global window, $*/
 
 (function (factory) {
     window.SahteReact = factory();
     window.SahteStore = window.SahteReact.store;
-}(function () {
+})(function () {
+    const idMap = new WeakMap();
     var utils = {
         // Deep merge helper
-        merge: (function () {
-            if (window.jQuery) {
-                return function merge () {
-                    var args = [true].concat(Array.from(arguments));
-                    return window.jQuery.extend.apply(window.jQuery, args);
-                };
-            } else { // for mobile
-                return function merge (out) {
-                    out = out || {};
-                    for (var i = 1; i < arguments.length; i += 1) {
-                        var obj = arguments[i];
-                        if (!obj) {
-                            continue;
-                        }
-                        for (var key in obj) {
-                            if (obj.hasOwnProperty(key)) {
-                                if (typeof obj[key] === 'object')
-                                    out[key] = utils.merge(out[key], obj[key]);
-                                else
-                                    out[key] = obj[key];
-                            }
-                        }
-                    }
-                    return out;
-                };
+        merge: function merge(out) {
+            out = out || {};
+            for (var argIndex = 1; argIndex < arguments.length; argIndex += 1) {
+                var obj = arguments[argIndex];
+                if (!obj || typeof val !== 'object') {
+                    continue;
+                }
+                var keys = Object.keys(obj);
+                for (var keyIndex = 1; keyIndex < keys.length; keyIndex += 1) {
+                    var key = keys[keyIndex];
+                    var val = obj[key];
+                    out[key] = (typeof val === 'object' && val !== null)
+                        ? utils.merge(out[key], val)
+                        : val;
+                }
             }
-        }()),
+            return out;
+        },
 
         /**
          * Generates an unique alpha-numeric identifier.<br/>
          * To get the same permutation as RFC-4122 use len=24.
-         * @param [len=10] Length of the UUID.
-         * @param [hypenate=false] When set to true, hyphens are added to the UUID.
+         * @param {Number} [len=11] Length of the UUID.
          * @return {String} The UUID
          * @method uuid
          */
-        uuid: function (len, hypenate) {
-            var count = 1, id = ('x').repeat(len || 10).replace(/x/g, function () {
-                return ((count++ % 5) ? '' : '-') + (Math.random() * 100 % 36 | 0).toString(36);
+        uuid: function (len = 11) {
+            return 'x'.repeat(len).replace(/x/g, function () {
+                return (Math.random() * 36 | 0).toString(36);
             });
-            return hypenate ? id : id.replace(/-/g, '');
         },
 
         /**
@@ -55,14 +45,13 @@
          * This does not leak memory.
          * @method getUID
          */
-        getUID: function getUID(obj) {
-            if (!obj._uid_) {
-                Object.defineProperty(obj, '_uid_', {
-                    value: utils.uuid(),
-                    enumerable: false
-                });
+        getUID: function getUID(obj, create = true) {
+            var id = idMap.get(obj);
+            if (!id && create) {
+                id = utils.uuid();
+                idMap.set(obj, id);
             }
-            return obj._uid_;
+            return id;
         },
 
         /*Dom helpers*/
@@ -72,82 +61,82 @@
          * @return {DocumentFragment}
          * @method dom
          */
-        dom: (function () {
-            if (window.jQuery) {
-                return function dom(html) {
-                    var frag = document.createDocumentFragment();
-                    window.jQuery.parseHTML(html).forEach(function (node) {
-                        frag.appendChild(node);
-                    });
-                    return frag;
-                };
-            } else { // for mobile
-                return function dom(html) {
-                    var templateTag = document.createElement('template');
-                    templateTag.innerHTML = html;
-                    return templateTag.content.cloneNode(true);
-                };
+        dom: function dom(html) {
+            const supportsTemplate = 'content' in document.createElement('template');
+            if (supportsTemplate) {
+                var templateTag = document.createElement('template');
+                templateTag.innerHTML = html;
+                return templateTag.content;
+            } else if (window.jQuery && window.jQuery.parseHTML) { // IE 11 (jquery fallback)
+                var frag = document.createDocumentFragment();
+                var nodes = window.jQuery.parseHTML(html);
+                nodes.forEach(function (node) {
+                    frag.appendChild(node);
+                });
+                return frag;
+            } else { // fallback to our parseHTML function which we extracted out from jquery)
+                return window.parseHTML(html);
             }
-        }()),
+        },
 
         /**
-         * Helper to attach event listener to DOM. Uses jQuery if available or falls back to custom implemeentation.
-         * @param {String} html
-         * @return {DocumentFragment}
+         * Helper to attach handleEvent object event listener to element.
+         * @param {HTMLElement} node
+         * @param {Object} context
+         * @param {String} eventName
+         * @param {Function} func
          * @method dom
          */
-        on: (function () {
-            if (window.jQuery) {
-                return function on(node, eventName, func, context) {
-                    $(node).on(eventName, func.bind(context));
-                };
-            } else { // for mobile
-                return function on(node, eventName, func, context) {
-                    node._bindings = node._bindings || {};
-                    var key = eventName + '#' + utils.getUID(func);
-                    if (context) { // prevent multiple events from being added.
-                        key += '#' + utils.getUID(context);
-                    }
-                    if (!node._bindings[key]) {
-                        node._bindings[key] = context ? func.bind(context) : func;
-                    }
-                    func = node._bindings[key];
-                    node.addEventListener(eventName, func);
-                };
+        on: function on(node, context, eventName, func) {
+            node._bindings = node._bindings || {};
+            node._bindings[eventName] = func;
+            // add func to id mapping
+            utils.getUID(func);
+            node.addEventListener(eventName, context);
+        },
+        
+        /**
+         * Removes all event handlers on node. Ensure same context is passed as it
+         * was for on() method, else the event listeners wont get removed.
+         */
+        off: function off(node, context) {
+            if (node._bindings) {
+                Object.keys(node._bindings).forEach(function (eventName) {
+                    node.removeEventListener(eventName, context);
+                });
+                delete node._bindings;
             }
-        }()),
-
-        removeAllEventListeners: (function () {
-            if (window.jQuery) {
-                return function removeAllEventListeners(node) {
-                    $(node).off();
-                };
-            } else { // for mobile
-                return function removeAllEventListeners(node) {
-                    if (node._bindings) {
-                        Object.keys(node._bindings).forEach(function (key) {
-                            var eventName = key.split('#')[0];
-                            var func = node._bindings[key];
-                            node.removeEventListener(eventName, func);
-                        });
-                        delete node._bindings;
-                    }
-                };
-            }
-        }())
+        }
     };
 
+    /**
+     * @template DataType
+     * @param {Object} config 
+     * @param {HTMLElement} config.target
+     * @param {DataType} config.data
+     * @param {(data: DataType) => String} config.getHtml
+     * @param {Boolean} [config.mount=false]
+     * @param {Boolean} [config.hydrate=false]
+     * @param {String[]} config.connect
+     */
     var SahteReact = function (config) {
         this.id = SahteReact.generateUId();
         this._data = {};
-        this.setConfig(config);
+        var data = config.data;
+        if (data && typeof data === 'object') {
+            this._data = data;
+        }
+        var mount = config.mount;
+        var hydrate = config.hydrate;
+        
+        delete config.data;
+        delete config.mount;
+        delete config.hydrate;
+        Object.assign(this, config);
 
-        var data = this.data;
-        delete this.data;
         Object.defineProperty(this, 'data', {
             configurable: false,
             set: function (data) {
-                data.$view = this;
                 this._data = data;
                 this.render();
             },
@@ -155,10 +144,10 @@
                 return this._data;
             }
         });
-        this.init();
-        //Trigger render.
-        if (data) {
-            this.data = data;
+        if (hydrate) {
+            this.hydrate()
+        } else if (mount) {
+            this.mount();
         }
     };
 
@@ -172,27 +161,7 @@
             return id;
         },
 
-        _liquidEngine: null,
-        /**
-         * Compiles the given template using detected template engine.
-         *
-         * If compiler isn't available, assume 'template' is an id to an already compiled
-         * template (stored within some namespace) and return 'template' as is.
-         */
-        compile: function (template) {
-            if (window.nunjucks || window.swig) {
-                return template;
-            } else if (window.doT) {
-                return window.doT.template(template);
-            } else if (window.liquidjs) {
-                if (!SahteReact._liquidEngine) {
-                    SahteReact._liquidEngine = new window.liquidjs.Liquid();
-                }
-                return SahteReact._liquidEngine.parse(template);
-            }
-            // doesn't support pre-compilation
-            return template;
-        },
+        getHtml: function () { return ''; },
 
         // a global store for Sahte views (it's like a singleton global redux store)
         // it only does a shallow (i.e level 1) equality check of the store data properties
@@ -229,9 +198,9 @@
                     return currentData[prop] !== newData[prop];
                 });
                 Object.assign(this._data, newData);
-                this.notifySubscribers(changedProps);
+                this.notify(changedProps);
             },
-            notifySubscribers: function (changedProps) {
+            notify: function (changedProps) {
                 var changedPropsLookup = changedProps.reduce(function (acc, prop) {
                     acc[prop] = 1;
                     return acc;
@@ -262,7 +231,7 @@
                 return currentData[prop] !== data[prop];
             });
             this._data = data;
-            this.notifySubscribers(changedProps);
+            this.notify(changedProps);
         },
         get: function () {
             return this._data;
@@ -280,11 +249,6 @@
         _data: null,
 
         /**
-         * The name of the preconmpiled nunjucks template to use.
-         */
-        template: null,
-
-        /**
          * (Optional) The elment to replace (on first render).
          */
         target: null,
@@ -296,21 +260,6 @@
          */
         connect: null,
         
-        /**
-         * Allow overridable view-specific init() method
-         */
-        init: function () {},
-
-        /**
-         * Sets config.
-         */
-        setConfig: function (config) {
-            if (config && typeof config.template === 'string') {
-                config.template = SahteReact.compile(config.template);
-            }
-            Object.assign(this, config);
-        },
-
         /**
          * Set data on this.data (using Object.assign), and re-render.
          */
@@ -328,29 +277,24 @@
             this.render();
         },
 
-        getHTML: function (data) {
-            if (window.nunjucks) {
-                return window.nunjucks.render(this.template, data);
-            } else if (window.swig) {
-                return window.swig.run(window.swig._precompiled[this.template], data, this.template);
-            } else if (SahteReact._liquidEngine) {
-                return SahteReact._liquidEngine.renderSync(this.template, data);
-            } else { // assume this.template is a compiled template function that takes data
-                return this.template(data);
+        handleEvent: function handleEvent(event) {
+            var node = event.currentTarget;
+            var self = this;
+            const func = node._bindings[event.type];
+            // check if array was not tampered
+            if (utils.getUID(func, false)) {
+                func.call(self, event);
             }
         },
 
         /**
          * Render view.
          * If this.target or node paramter is specified, then replaces that node and attaches the
-         * rendered DOM to document (or document fragment). Else the render is in-memory.
-         *
-         * @param {Node} [node] The node to replace. If not sepcified, then searches
-         * for the selector specified at this.target.
+         * rendered DOM to document (or document fragment).
          *
          * @private
          */
-        render: function () {
+        render: function render() {
             // Step 1: Remove event listeners
             // Step 2: Note the currently focused element
             // Step 3: Render/Update UI.
@@ -369,7 +313,7 @@
                 [target].concat(Array.from(target.querySelectorAll('*')))
                     .forEach(function (node) {
                         if (node.nodeType === 1) {
-                            utils.removeAllEventListeners(node);
+                            utils.off(node, this);
                         }
                     }, this);
             }
@@ -381,7 +325,7 @@
                 return acc;
             }, {});
             var data = Object.assign(storeDataSubset, this.data);
-            var view = utils.dom(this.getHTML(data));
+            var view = utils.dom(this.getHtml(data));
             var el = view.firstElementChild;
 
             // Update existing DOM.
@@ -389,34 +333,18 @@
                 var parent = target.parentNode,
                     childIndex = Array.from(parent.childNodes).indexOf(target);
 
-                //Update UI (using DOM diff & patch).
-                window.domPatch(el, target);
+                // Update UI using https://github.com/WebReflection/domdiff
+                window.domdiff(
+                    parent,
+                    [target],
+                    [el],
+                );
                 this.el = parent.childNodes[childIndex];
             } else {
                 this.el = el;
             }
 
-            this.el.sahteReactInstance = this;
-
-            // Step 4. Resolve element ref and refs.
-            // Note:
-            // ref creates a reference to the node as property on the view.
-            // refs creates an array property on the view, into which the node is pushed.
-            Array.from(this.el.querySelectorAll('[ref]')).forEach(function (node) {
-                this[node.getAttribute('ref')] = node;
-            }, this);
-
-            var refs = Array.from(this.el.querySelectorAll('[refs]'));
-            //Empty references first.
-            refs.forEach(function (node) {
-                this[node.getAttribute('ref')] = [];
-            }, this);
-            //Create reference.
-            refs.forEach(function (node) {
-                this[node.getAttribute('ref')].push(node);
-            }, this);
-
-            // Step 5: Re-focus
+            // Step 4: Re-focus
             if (focusId) {
                 var focusEl = document.getElementById(focusId);
                 if (focusEl) {
@@ -424,45 +352,91 @@
                 }
             }
 
+            this.domHydrate();
+        },
+
+        /**
+         * @private
+         */
+        domHydrate: function domHydrate() {
+            // Doing step 5 and 6 from render() function
+            // Step 5: Resolve references
+            // Step 6: Attach listeners
+            var self = this;
+
+            // TODO: only set this on debug mode
+            self.el.sahteReactInstance = self;
+
+            // Step 5. Resolve element ref and refs.
+            // Note:
+            // ref creates a reference to the node as property on the view.
+            // refs creates an array property on the view, into which the node is pushed.
+            Array.from(self.el.querySelectorAll('[ref]')).forEach(function (node) {
+                self[node.getAttribute('ref')] = node;
+            });
+
+            var refs = Array.from(self.el.querySelectorAll('[refs]'));
+            // Reset references first
+            refs.forEach(function (node) {
+                self[node.getAttribute('ref')] = [];
+            });
+            // Create reference.
+            refs.forEach(function (node) {
+                self[node.getAttribute('ref')].push(node);
+            });
+
             // Step 6: Attach event listeners.
-            [this.el].concat(Array.from(this.el.querySelectorAll('*')))
+            [self.el].concat(Array.from(self.el.querySelectorAll('*')))
                 .forEach(function (node) {
                     if (node.nodeType === 1) {
                         Array.from(node.attributes).forEach(function (attr) {
                             if (attr.name.startsWith('on-')) {
                                 var eventName = attr.name.replace(/on-/, '');
-                                utils.on(node, eventName, this[attr.value], this);
+                                utils.on(node, self, eventName, self[attr.value]);
                             }
-                        }, this);
+                        });
                     }
-                }, this);
+                });
         },
 
-        mount: function (node) {
+        /**
+         * @param {Boolean} [hydrateOnly=false] does a full render by default. 'Hydration' only
+         * attaches event listeners and resolves refs.
+         * @returns 
+         */
+        mount: function mount(hydrateOnly = false) {
             if (this.connect) {
                 SahteReact.store.subscribe(this.render, this.connect, this);
             }
 
-            if (!node && this.target) {
-                if (typeof this.target === 'string') {
-                    node = document.querySelector(this.target);
-                } else if (this.target instanceof HTMLElement) {
-                    node = this.target;
-                }
+            var node = this.target;
+            if (typeof node === 'string') {
+                node = document.querySelector(node);
             }
 
-            //Return if already mounted.
+            // Return if already mounted.
             if (this.el && node === this.el) {
                 return;
             }
 
             if (node && node.parentNode) {
                 this.el = node;
-                this.render();
+                if (hydrateOnly) {
+                    this.domHydrate();
+                } else { // full render
+                    this.render();
+                }
             }
         },
 
-        append: function (node) {
+        hydrate: function hydrate(data) {
+            if (arguments.length > 0 && data && typeof data === 'object') {
+                this._data = data;
+            }
+            this.mount(true);
+        },
+
+        append: function append(node) {
             if (this.connect) {
                 SahteReact.store.subscribe(this.render, this.connect, this);
             }
@@ -473,11 +447,11 @@
             node.appendChild(this.el);
         },
 
-        unmount: function () {
+        unmount: function unmount() {
             SahteReact.store.unsubscribe(this.render, this.connect);
             this.el.parentNode.removeChild(this.el);
         }
     });
 
     return SahteReact;
-}));
+});

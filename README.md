@@ -182,3 +182,9 @@ swig example:
 swig/bin/swig.js compile mytemplate.html --wrap-start="swig._precompiled = swig._precompiled || {};
 swig._precompiled['mytemplate'] = " > mytemplate.js
 ```
+
+### Browser compatibility
+
+To support every browser as GOV UK - https://www.gov.uk/service-manual/technology/designing-for-different-browsers-and-devices#browsers-to-test-in-from-january-2021
+
+(currently includes IE 11, Safari 12 and Samsung Internet)
