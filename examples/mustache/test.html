@@ -1,0 +1,24 @@
+<html>
+    <head>
+        <script src="https://unpkg.com/domdiff@2.2.2/min.js"></script>
+        <script src="http://twitter.github.io/hogan.js/builds/3.0.1/hogan-3.0.1.min.js"></script>
+        <script src="../../sahte-react.min.js"></script>
+        <script src="./button.js"></script>
+    </head>
+    <body>
+        <div id="myview"></div>
+
+        <script>
+            new SahteReact({
+                getHtml: (data) => mustacheTemplates.button.render(data),
+                data: { text: 'Test' },
+                target: '#myview',
+                mount: true,
+                onClick: function () {
+                    console.log('Clicked!');
+                    this.assign({ text: 'Clicked' });
+                }
+            });
+        </script>
+    </body>
+</html>

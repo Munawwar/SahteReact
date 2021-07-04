@@ -1,25 +1,26 @@
 <html>
     <head>
-        <script src="../../dom-diff.js"></script>
-        <script src="../../template-library/doT.min.js"></script>
+        <script src="https://unpkg.com/domdiff@2.2.2/min.js"></script>
+        <script src="./liquid.min.js"></script>
         <script src="../../sahte-react.js"></script>
     </head>
     <body>
         <div id="myview"></div>
         <script>
             var view = new SahteReact({
-                template: window.doT.template(
+                getHtml: (data) => (new liquidjs.Liquid()).parseAndRenderSync(
                     `<div on-click="onClick">
-                        <span ref="spanEl">{{= it.text }}</span>
-                    </div>`
+                        <span ref="spanEl">{{ text }}</span>
+                    </div>`,
+                    data,
                 ),
-                data: {text: 'Test'},
+                data: { text: 'Test' },
                 target: '#myview',
+                mount: true,
                 onClick: function () {
                     console.log('Clicked!');
                 }
             });
-            view.mount();
         </script>
     </body>
 </html>

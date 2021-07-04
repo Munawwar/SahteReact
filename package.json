@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dist": "terser sahte-react.js -mc -o dist/sahte-react.min.js --source-map"
   },
   "keywords": [
     "fake",
@@ -15,9 +15,9 @@
   ],
   "author": "Munawwar",
   "license": "MIT",
-  "dependencies": {},
   "devDependencies": {
     "nunjucks": "^3.0.0",
-    "swig": "^1.4.2"
-  }
+    "terser": "^5.7.1"
+  },
+  "dependencies": {}
 }

@@ -28,29 +28,24 @@ index.html:
 <!DOCTYPE html>
 <html>
     <head>
-        <script src="jquery.js"></script>
-
-        <script src="template-library/nunjucks-slim.min.js"></script>
-        <script src="dom-diff.js"></script>
+        <script src="https://unpkg.com/domdiff@2.2.2/min.js"></script>
         <script src="sahte-react.js"></script>
-
-        <script src="mytemplate.js"></script>
     </head>
     <body>
         <div id="node-to-sync"></div>
         <script>
             var view = new SahteReact({
-                template: 'mytemplate',
+                getHtml: (data) => `<div>${data.text}</div>`,
                 data: { text: 'Test' },
                 target: '#node-to-sync', // optional
-
+                
                 onClick: function () {
                     console.log('Clicked!');
                 }
             });
             view.mount();
-            // or if you don't want to use target prop, but want to append to document body:
-            // view.append(document.body)
+            // or if you want to only hydrate, call view.hydrate()
+            // or if no target specified, do view.append(document.body)
         </script>
     </body>
 </html>
@@ -58,46 +53,12 @@ index.html:
 
 **Important note**: The template HTML should be wrapped inside a single HTML tag. In other words, SahteReact assumes the template has a single root element. If not, then Sahte would take the first element (as root) and ignore the rest.
 
-**Note 2**: `view.mount()` or `view.append()` will update DOM immediately (synchronous/blocking call).
-
-### But I want to use X templating engine!!
-
-Simplest way to achieve this is to override SahteReact's default `getHTML()` methods.
-
-```js
-SahteReact.prototype.getHTML = function (data) {
-  return myFunkyTemplateEngine(this.template, data);
-};
-```
-
-Hoewever if your templating engine supports pre-compiling (which makes rendering much faster), then it's better to set it up like so:
-```js
-SahteReact.compile = function (template) {
-  return myFunkyTemplateEngine.compile(template);
-};
-
-SahteReact.prototype.getHTML = function (data) {
-  return this.template(data);
-};
-```
-
-If you don't want to use any template engine then override your `getHTML()` function per instance
-(and don't set `template` property on the instance of course)
-
-```js
-var view = new SahteReact({
-    // ...
-    
-    getHTML: function (data) {
-        return `<div>${data.text}</div>`;
-    }
-});
-```
+**Note 2**: `view.mount()` and `view.append()` will update DOM immediately (synchronous/blocking call).
 
 ### How to update the view?
 
 ```js
-view.data = { text: 'Test 2' }; //uses setter to detect change
+view.data = { text: 'Test 2' }; // uses setter to detect change
 ```
 Or use `view.assign()` to not overwrite existing props
 
@@ -105,7 +66,7 @@ Or use `view.assign()` to not overwrite existing props
 
 **Note**: Updating states updates the DOM immediately (synchronous/blocking call). So it is generally a good idea to reduce state changes to a single call per user action.. for example a click action would call `view.assign()` only once. You can use temporary objects if needed to reduce calls.
 
-### Quick access to DOM nodes
+### Refs to DOM nodes
 
 ```html
 <div on-click="onClick">
@@ -127,9 +88,7 @@ Sahte React comes with a simplified global state store, so that you can have mul
 ```js
 // initialize global store
 SahteStore.assign({
-    counter: {
-        value: 1
-    }
+    counter: 1
 });
 
 // create some views that use the store data.
@@ -138,53 +97,42 @@ var view1 = new SahteReact({
     // you need to explicitly "connect" to that property. This is a performance
     // optimization (like redux).
     connect: ['counter'],
-    template: `<div><span>Counter = {{= it.counter.value }}</span></div>`,
-    target: '#myview1'
+    getHtml: data => `<div><span>Counter = ${ data.counter }</span></div>`,
+    target: '#myview1',
+    mount: true,
 });
 var view2 = new SahteReact({
-    template: `<div><span>Counter = {{= it.props.counter.value }}</span></div>`,
+    getHtml: `<div><span>Counter = ${ data.counter }</span></div>`,
     connect: ['counter'],
-    target: '#myview2'
+    target: '#myview2',
+    mount: true,
 });
-view1.mount();
-view2.mount();
 
 // demonstrating how updating one data source, re-renders multiple views
 // so.. update counter
 var incrementCounterAction = function () {
     SahteStore.assign({
-        counter: {
-            value: SahteStore.data.counter.value + 1
-        }
+        counter: SahteStore.data.counter.value + 1
     });
 };
 window.setInterval(incrementCounterAction, 1000);
 ```
 
-Note that if you don't "connect" your view to specific properties from the sahte store, then you cannot access those property at all. You templating engine would throw errors.
+Note that if you don't "connect" your view to specific properties from the sahte store, then you cannot access those property at all.
 
 Also note; I have moved the code that manipulates the central store (data side effects) to separate function(s) (i.e action). Even though this is completely optional, I would recommended always doing it that way, since it is later easier to find out what's manipulating the central store. If you put this code in the view it gets mixed with UI code and would be harder to find later.
 
 Important note: This whole thing is a disguised performance optimization. You can naively put all your HTML within a single SahteReact view and all the states within it.
 But.. that could take a hit on rendering performance. So Sahte Store gives you an option to make multiple views and refresh only the views that needs refresh (with some manual "connecting" from the developer's end).
 
-[Note to Redux fans: However there is no concept called reducers like redux. If you want it, you can use a 3rd party publisher-subscriber library and implement the reducer layer yourself. This functionality isn't provided by SahteReact out-of-the-box.]
+### Security
 
-### Template precompiling for tests folder
-
-nunjucks example:
-```
-nunjucks/bin/precompile --name mytemplate mytemplate.html > mytemplate.js
-```
-
-swig example:
-```
-swig/bin/swig.js compile mytemplate.html --wrap-start="swig._precompiled = swig._precompiled || {};
-swig._precompiled['mytemplate'] = " > mytemplate.js
-```
+Templates allow script and style tags. Therefore do not execute untrusted HTML (without running it through an HTML sanitizer first).
 
 ### Browser compatibility
 
-To support every browser as GOV UK - https://www.gov.uk/service-manual/technology/designing-for-different-browsers-and-devices#browsers-to-test-in-from-january-2021
+Supports every browser as GOV UK (2021) - https://www.gov.uk/service-manual/technology/designing-for-different-browsers-and-devices#browsers-to-test-in-from-january-2021
 
 (currently includes IE 11, Safari 12 and Samsung Internet)
+
+*But* for IE 11, you either need to add jquery or parseHtml() function (extracted out from jquery) for polyfill.

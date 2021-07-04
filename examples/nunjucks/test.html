@@ -1,9 +1,7 @@
 <html>
     <head>
-        <script src="../jquery.js"></script>
-
-        <script src="../../dom-diff.js"></script>
-        <script src="../../template-library/nunjucks-slim.min.js"></script>
+        <script src="https://unpkg.com/domdiff@2.2.2/min.js"></script>
+        <script src="./nunjucks-slim.min.js"></script>
         <script src="../../sahte-react.js"></script>
 
         <script src="myview.js"></script>
@@ -12,9 +10,10 @@
         <div id="myview"></div>
         <script>
             var view = new SahteReact({
-                template: 'myview',
+                getHtml: (data) => window.nunjucks.render('myview', data),
                 data: {text: 'Test'},
                 target: '#myview',
+                mount: true,
                 onClick: function () {
                     console.log('Clicked!');
                 }
