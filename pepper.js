@@ -1,8 +1,7 @@
 /*global window, $*/
 
 (function (factory) {
-    window.SahteReact = factory();
-    window.SahteStore = window.SahteReact.store;
+    window.Pepper = factory();
 })(function () {
     const idMap = new WeakMap();
     var utils = {
@@ -67,9 +66,9 @@
                 var templateTag = document.createElement('template');
                 templateTag.innerHTML = html;
                 return templateTag.content;
-            } else if (window.jQuery && window.jQuery.parseHTML) { // IE 11 (jquery fallback)
+            } else if (window.jQuery) { // IE 11 (jquery fallback)
                 var frag = document.createDocumentFragment();
-                var nodes = window.jQuery.parseHTML(html);
+                var nodes = jQuery.parseHTML(html);
                 nodes.forEach(function (node) {
                     frag.appendChild(node);
                 });
@@ -119,8 +118,8 @@
      * @param {Boolean} [config.hydrate=false]
      * @param {String[]} config.connect
      */
-    var SahteReact = function (config) {
-        this.id = SahteReact.generateUId();
+    var Pepper = function (config) {
+        this.id = Pepper.generateUId();
         this._data = {};
         var data = config.data;
         if (data && typeof data === 'object') {
@@ -152,18 +151,18 @@
     };
 
     // Static methods and properties
-    Object.assign(SahteReact, {
+    Object.assign(Pepper, {
         uid: 1,
         utils: utils,
         generateUId: function () {
-            var id = 'view-' + SahteReact.uid;
-            SahteReact.uid += 1;
+            var id = 'view-' + Pepper.uid;
+            Pepper.uid += 1;
             return id;
         },
 
         getHtml: function () { return ''; },
 
-        // a global store for Sahte views (it's like a singleton global redux store)
+        // a global store for Pepper views (it's like a singleton global redux store)
         // it only does a shallow (i.e level 1) equality check of the store data properties
         // for notifying relevant connected views to re-render
         store: {
@@ -220,7 +219,7 @@
         }
     });
 
-    Object.defineProperty(SahteReact.store, 'data', {
+    Object.defineProperty(Pepper.store, 'data', {
         configurable: false,
         set: function (data) {
             if (typeof data !== 'object') {
@@ -240,7 +239,7 @@
 
 
     // Methods and properties
-    Object.assign(SahteReact.prototype, {
+    Object.assign(Pepper.prototype, {
         /**
          * The data object.
          * This is a private variable accessed through this.data
@@ -254,7 +253,7 @@
         target: null,
 
         /**
-         * (Optional) An array of props to listen to from SahteReact.store (it's a global state store)
+         * (Optional) An array of props to listen to from Pepper.store (it's a global state store)
          * This instance will re-render (when mounted) when the specified props change in the global store
          * Example: ['cart', 'wishlist']
          */
@@ -319,7 +318,7 @@
             }
 
             // Step 3: Render/Update UI
-            var storeData = SahteReact.store._data;
+            var storeData = Pepper.store._data;
             var storeDataSubset = (this.connect || []).reduce(function (acc, prop) {
                 acc[prop] = storeData[prop];
                 return acc;
@@ -333,11 +332,13 @@
                 var parent = target.parentNode,
                     childIndex = Array.from(parent.childNodes).indexOf(target);
 
-                // Update UI using https://github.com/WebReflection/domdiff
-                window.domdiff(
+                // Update UI using https://github.com/WebReflection/udomdiff
+                window.udomdiff(
                     parent,
                     [target],
                     [el],
+                    function (n) { return n},
+                    target.nextSibling,
                 );
                 this.el = parent.childNodes[childIndex];
             } else {
@@ -365,7 +366,7 @@
             var self = this;
 
             // TODO: only set this on debug mode
-            self.el.sahteReactInstance = self;
+            self.el.pepperInstance = self;
 
             // Step 5. Resolve element ref and refs.
             // Note:
@@ -406,7 +407,7 @@
          */
         mount: function mount(hydrateOnly = false) {
             if (this.connect) {
-                SahteReact.store.subscribe(this.render, this.connect, this);
+                Pepper.store.subscribe(this.render, this.connect, this);
             }
 
             var node = this.target;
@@ -438,7 +439,7 @@
 
         append: function append(node) {
             if (this.connect) {
-                SahteReact.store.subscribe(this.render, this.connect, this);
+                Pepper.store.subscribe(this.render, this.connect, this);
             }
 
             if (!this.el) {
@@ -448,10 +449,10 @@
         },
 
         unmount: function unmount() {
-            SahteReact.store.unsubscribe(this.render, this.connect);
+            Pepper.store.unsubscribe(this.render, this.connect);
             this.el.parentNode.removeChild(this.el);
         }
     });
 
-    return SahteReact;
+    return Pepper;
 });

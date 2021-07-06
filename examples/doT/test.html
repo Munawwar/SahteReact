@@ -1,13 +1,13 @@
 <html>
     <head>
-        <script src="https://unpkg.com/domdiff@2.2.2/min.js"></script>
+        <script src="https://unpkg.com/udomdiff@1.1.0/min.js"></script>
         <script src="./doT.min.js"></script>
-        <script src="../../sahte-react.js"></script>
+        <script src="../../pepper.js"></script>
     </head>
     <body>
         <div id="myview"></div>
         <script>
-            var view = new SahteReact({
+            var view = new Pepper({
                 getHtml: window.doT.template(
                     `<button on-click="onClick">
                         <span ref="spanEl">{{= it.text }}</span>

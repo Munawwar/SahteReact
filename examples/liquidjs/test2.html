@@ -1,34 +1,34 @@
 <html>
     <head>
-        <script src="https://unpkg.com/domdiff@2.2.2/min.js"></script>
+        <script src="https://unpkg.com/udomdiff@1.1.0/min.js"></script>
         <script src="./liquid.min.js"></script>
-        <script src="../../sahte-react.js"></script>
+        <script src="../../pepper.js"></script>
     </head>
     <body>
         <div id="myview1"></div>
         <div id="myview2"></div>
         <div id="myview3"></div>
         <script>
-            SahteReact.store.data = {
+            Pepper.store.data = {
                 counter: 1
             };
             const renderTemplate = (template) => (data) => (new liquidjs.Liquid()).parseAndRenderSync(
                 template,
                 data,
             );
-            var view1 = new SahteReact({
+            var view1 = new Pepper({
                 getHtml: renderTemplate(`<div><span>Counter = {{ counter }}</span></div>`),
                 connect: ['counter'],
                 target: '#myview1',
                 mount: true
             });
-            var view2 = new SahteReact({
+            var view2 = new Pepper({
                 getHtml: renderTemplate(`<div><span>Counter = {{ counter }}</span></div>`),
                 connect: ['counter'],
                 target: '#myview2',
                 mount: true
             });
-            var view3 = new SahteReact({
+            var view3 = new Pepper({
                 getHtml: renderTemplate(`<div><span>View 3 cant access global store's counter, because it isn't connected to it</span></div>`),
                 target: '#myview3',
                 mount: true
@@ -36,8 +36,8 @@
 
             // update counter
             window.setInterval(function () {
-                SahteStore.assign({
-                    counter: SahteStore.data.counter + 1
+                Pepper.store.assign({
+                    counter: Pepper.store.data.counter + 1
                 });
             }, 1000);
         </script>

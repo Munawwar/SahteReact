@@ -1,15 +1,15 @@
 <html>
     <head>
-        <script src="https://unpkg.com/domdiff@2.2.2/min.js"></script>
-        <script src="http://twitter.github.io/hogan.js/builds/3.0.1/hogan-3.0.1.min.js"></script>
-        <script src="../../sahte-react.min.js"></script>
+        <script src="https://unpkg.com/udomdiff@1.1.0/min.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/twitter/hogan.js/web/builds/3.0.2/template-3.0.2.min.js"></script>
+        <script src="../../pepper.js"></script>
         <script src="./button.js"></script>
     </head>
     <body>
         <div id="myview"></div>
 
         <script>
-            new SahteReact({
+            new Pepper({
                 getHtml: (data) => mustacheTemplates.button.render(data),
                 data: { text: 'Test' },
                 target: '#myview',

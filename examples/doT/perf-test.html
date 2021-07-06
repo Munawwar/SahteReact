@@ -1,8 +1,8 @@
 <html>
     <head>
-        <script src="https://unpkg.com/domdiff@2.2.2/min.js"></script>
+        <script src="https://unpkg.com/udomdiff@1.1.0/min.js"></script>
         <script src="./doT.min.js"></script>
-        <script src="../../sahte-react.js"></script>
+        <script src="../../pepper.js"></script>
     </head>
     <body>
         <script>
@@ -3493,10 +3493,10 @@
                     </div>            
         </div>`;
 
-            var view1 = new SahteReact({
+            var view1 = new Pepper({
                 getHtml: window.doT.template(hugeTemplate),
             });
-            var view2 = new SahteReact({
+            var view2 = new Pepper({
                 getHtml: window.doT.template('<div id="small-view">Refreshes: {{= it.counter }}</div>'),
                 data: {
                     counter: 1

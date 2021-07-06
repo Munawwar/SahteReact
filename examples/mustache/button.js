@@ -1,2 +1,1 @@
-if (!!!mustacheTemplates) var mustacheTemplates = {};
-mustacheTemplates["button"] = new Hogan.Template({code: function (c,p,i) { var t=this;t.b(i=i||"");t.b("<button on-click=\"onClick\">");t.b("\n" + i);t.b("  <span ref=\"spanEl\">");t.b(t.v(t.f("text",c,p,0)));t.b("</span>");t.b("\n" + i);t.b("</button>");return t.fl(); },partials: {}, subs: {  }});
+(window.mustacheTemplates=window.mustacheTemplates||{}).button={render:function(e){return'<button on-click="onClick">\n  <span ref="spanEl">'+(t=e.text,String(t).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</span>\n</button>");var t}};

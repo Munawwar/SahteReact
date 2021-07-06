@@ -1,15 +1,15 @@
 <html>
     <head>
-        <script src="https://unpkg.com/domdiff@2.2.2/min.js"></script>
+        <script src="https://unpkg.com/udomdiff@1.1.0/min.js"></script>
         <script src="./nunjucks-slim.min.js"></script>
-        <script src="../../sahte-react.js"></script>
+        <script src="../../pepper.js"></script>
 
         <script src="myview.js"></script>
     </head>
     <body>
         <div id="myview"></div>
         <script>
-            var view = new SahteReact({
+            var view = new Pepper({
                 getHtml: (data) => window.nunjucks.render('myview', data),
                 data: {text: 'Test'},
                 target: '#myview',
