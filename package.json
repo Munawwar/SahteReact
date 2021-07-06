@@ -1,5 +1,5 @@
 {
-  "name": "pepper2",
+  "name": "@pepper-js/pepper",
   "version": "0.0.1",
   "description": "Bring your server-side templates to life",
   "main": "pepper.js",
@@ -7,7 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "dist": "terser pepper.js -mc -o dist/pepper.min.js --source-map"
+    "dist": "terser pepper.js -mc -o dist/pepper.min.js --source-map",
+    "publish": "npm publish --access public"
   },
   "keywords": [
     "sprinkle some js"
